@@ -11,8 +11,8 @@
             padding: 0;
             background-color: #FFFFFF;
             color: #333;
+            box-sizing: border-box;
             overflow-x: hidden; /* Prevent horizontal scroll */
-            height: 100vh; /* Full screen height */
         }
 
         nav {
@@ -42,6 +42,10 @@
             width: 24px;
             height: 2px;
             background-color: #002147;
+        }
+
+        .menu-icon div:nth-child(2) {
+            margin: 6px 0;
         }
 
         .menu {
@@ -79,47 +83,50 @@
         }
 
         .artwork-container {
-            padding: 0; /* Remove padding to make image full screen */
+            padding: 2em;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
-            height: 100vh; /* Full screen height */
         }
 
         /* For zoomable image */
         .fullscale {
             position: relative;
             max-width: 100%;
-            height: 100%; /* Full height */
             overflow: hidden;
             cursor: grab;
         }
 
         .fullscale img {
-            width: 100%; /* Ensure full width */
-            height: 100%; /* Full height */
-            object-fit: cover;
+            max-width: 100%;
             transition: transform 0.25s ease;
         }
 
-        /* Close icon */
+        /* Zoom icon at the bottom left */
+        .zoom-icon {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: white;
+            color: black;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
         .close-icon {
+            display: none;
             position: absolute;
             top: 10px;
             right: 10px;
-            width: 30px;
-            height: 30px;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: white;
+            color: black;
+            padding: 10px;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
             cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            z-index: 10;
+            z-index: 1000;
         }
 
         footer {
@@ -151,8 +158,9 @@
 
     <div class="artwork-container">
         <div class="fullscale">
-            <div class="close-icon" id="close-icon">X</div>
             <img id="fullscale-img" src="" alt="Full Scale Artwork">
+            <div class="zoom-icon" id="zoom-in">+</div>
+            <div class="close-icon" id="close-zoom">&times;</div>
         </div>
         <div class="caption" id="art-caption"></div>
     </div>
@@ -194,7 +202,8 @@
             }
 
             const img = document.getElementById('fullscale-img');
-            const closeIcon = document.getElementById('close-icon');
+            const zoomInBtn = document.getElementById('zoom-in');
+            const closeZoomBtn = document.getElementById('close-zoom');
             let isZoomed = false;
             let startX, startY, moveX = 0, moveY = 0;
             let isDragging = false;
@@ -210,33 +219,43 @@
             function applyBoundaries() {
                 const containerRect = imgContainer.getBoundingClientRect();
                 const imgRect = img.getBoundingClientRect();
-                const maxTranslateX = (imgRect.width - containerRect.width) / 3;
-                const maxTranslateY = (imgRect.height - containerRect.height) / 3;
+                const maxTranslateX = (imgRect.width - containerRect.width);
+                const maxTranslateY = (imgRect.height - containerRect.height);
 
-                moveX = Math.min(Math.max(moveX, -maxTranslateX), maxTranslateX);
-                moveY = Math.min(Math.max(moveY, -maxTranslateY), maxTranslateY);
+                moveX = Math.min(Math.max(moveX, -maxTranslateX), 0);
+                moveY = Math.min(Math.max(moveY, -maxTranslateY), 0);
 
-                img.style.transform = `scale(2) translate(${moveX}px, ${moveY}px)`;
+                img.style.transform = `scale(6) translate(${moveX}px, ${moveY}px)`;
             }
 
-            // Zoom in/out functionality on tap
-            img.addEventListener('click', () => {
+            // Zoom in functionality (anywhere on the image or on the zoom icon)
+            function zoomImage() {
                 if (!isZoomed) {
-                    img.style.transform = 'scale(2)';
+                    img.style.transform = 'scale(6)';
+                    closeZoomBtn.style.display = 'block';
+                    zoomInBtn.style.display = 'none';
                     isZoomed = true;
                     document.body.addEventListener('touchmove', preventScroll, { passive: false });
                     document.body.addEventListener('wheel', preventScroll, { passive: false });
-                } else {
-                    img.style.transform = 'scale(1)';
-                    isZoomed = false;
-                    moveX = 0;
-                    moveY = 0;
-                    document.body.removeEventListener('touchmove', preventScroll);
-                    document.body.removeEventListener('wheel', preventScroll);
                 }
+            }
+
+            img.addEventListener('click', zoomImage);
+            zoomInBtn.addEventListener('click', zoomImage);
+
+            // Close zoom functionality
+            closeZoomBtn.addEventListener('click', () => {
+                img.style.transform = 'scale(1)';
+                closeZoomBtn.style.display = 'none';
+                zoomInBtn.style.display = 'block';
+                isZoomed = false;
+                img.style.left = 0;
+                img.style.top = 0;
+                document.body.removeEventListener('touchmove', preventScroll);
+                document.body.removeEventListener('wheel', preventScroll);
             });
 
-            // Drag and move functionality for zoomed image
+            // Drag and move functionality
             img.addEventListener('mousedown', (e) => {
                 if (isZoomed) {
                     startX = e.pageX - moveX;
@@ -255,40 +274,31 @@
             });
 
             img.addEventListener('mouseup', () => {
-                isDragging = false;
-                img.style.cursor = 'grab';
-            });
-
-            img.addEventListener('touchstart', (e) => {
-                if (isZoomed) {
-                    startX = e.touches[0].pageX - moveX;
-                    startY = e.touches[0].pageY - moveY;
-                    isDragging = true;
-                }
-            });
-
-            img.addEventListener('touchmove', (e) => {
-                if (isDragging && isZoomed) {
-                    moveX = e.touches[0].pageX - startX;
-                    moveY = e.touches[0].pageY - startY;
-                    applyBoundaries();
-                }
-            });
-
-            img.addEventListener('touchend', () => {
-                isDragging = false;
-            });
-
-            // Close icon functionality
-            closeIcon.addEventListener('click', () => {
-                img.style.transform = 'scale(1)';
-                isZoomed = false;
-                moveX = 0;
-                moveY = 0;
-                document.body.removeEventListener('touchmove', preventScroll);
-                document.body.removeEventListener('wheel', preventScroll);
-            });
+            isDragging = false;
+            img.style.cursor = 'grab';
         });
-    </script>
-</body>
-</html>
+
+        // For touch devices
+        img.addEventListener('touchstart', (e) => {
+            if (isZoomed) {
+                startX = e.touches[0].pageX - moveX;
+                startY = e.touches[0].pageY - moveY;
+                isDragging = true;
+                img.style.cursor = 'grabbing';
+            }
+        });
+
+        img.addEventListener('touchmove', (e) => {
+            if (isDragging && isZoomed) {
+                moveX = e.touches[0].pageX - startX;
+                moveY = e.touches[0].pageY - startY;
+                applyBoundaries();
+            }
+        });
+
+        img.addEventListener('touchend', () => {
+            isDragging = false;
+            img.style.cursor = 'grab';
+        });
+    });
+</script>
