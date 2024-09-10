@@ -132,5 +132,32 @@
     <footer>
         <p>&copy; 2024 Haozhu Li. All rights reserved.</p>
     </footer>
+
+    
+    <script>
+        function toggleMenu() {
+            var menu = document.getElementById('menu');
+            if (menu.style.display === 'flex') {
+                menu.style.display = 'none';
+            } else {
+                menu.style.display = 'flex';
+            }
+        }
+
+        // Close menu if clicked outside
+        document.addEventListener('click', function(event) {
+            var menu = document.getElementById('menu');
+            var menuIcon = document.querySelector('.menu-icon');
+            if (!menu.contains(event.target) && !menuIcon.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Prevent menu from closing when clicking inside the menu
+        document.getElementById('menu').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    </script>
+
 </body>
 </html>
