@@ -12,9 +12,7 @@
             background-color: #FFFFFF;
             color: #333;
             box-sizing: border-box;
-            overflow-x: hidden; /* Prevent horizontal scroll */
         }
-
         nav {
             display: flex;
             justify-content: space-between;
@@ -23,12 +21,10 @@
             background-color: #f4f4f4;
             border-bottom: 2px solid #002147;
         }
-
         .menu-container {
             display: flex;
             align-items: center;
         }
-
         .menu-icon {
             cursor: pointer;
             display: flex;
@@ -37,17 +33,14 @@
             height: 24px;
             margin-right: 20px;
         }
-
         .menu-icon div {
             width: 24px;
             height: 2px;
             background-color: #002147;
         }
-
         .menu-icon div:nth-child(2) {
             margin: 6px 0;
         }
-
         .menu {
             display: none;
             flex-direction: column;
@@ -60,14 +53,12 @@
             border: 1px solid #002147;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         .menu a {
             text-decoration: none;
             color: #002147;
             font-size: 1.2em;
             font-weight: 600;
         }
-
         .name {
             font-family: 'Dancing Script', cursive;
             font-size: 2em;
@@ -76,59 +67,66 @@
             text-align: center;
             flex-grow: 1;
         }
-
         .name a {
             text-decoration: none;
             color: #002147;
         }
-
         .artwork-container {
             padding: 2em;
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
         }
-
-        /* For zoomable image */
-        .fullscale {
-            position: relative;
-            max-width: 100%;
+        .zoom-pan-container {
             overflow: hidden;
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+        }
+        .zoom-pan-container img {
             cursor: grab;
+            transition: transform 0.2s ease-out;
+            touch-action: none;
         }
-
+        .caption {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #555;
+        }
+        footer {
+            background-color: #002147;
+            color: #FFFFFF;
+            text-align: center;
+            padding: 1em 0;
+        }
         .fullscale img {
-            max-width: 100%;
-            transition: transform 0.25s ease;
-        }
-
-        /* Zoom icon at the bottom left */
-        .zoom-icon {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background-color: white;
-            color: black;
-            padding: 10px;
-            border-radius: 50%;
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border: none;
+            margin-bottom: 20px;
             cursor: pointer;
-            z-index: 1000;
+            transition: transform 0.2s;
         }
-
-        .zoom-out-icon {
-            display: none;
-            position: absolute;
-            bottom: 50px;
-            left: 10px;
-            background-color: white;
-            color: black;
-            padding: 10px;
-            border-radius: 50%;
+        .details img {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border: none;
+            margin-bottom: 20px;
             cursor: pointer;
-            z-index: 1000;
+            transition: transform 0.2s;
         }
-
+        .fullscale img:hover,
+        .details img:hover {
+            transform: scale(1.5);
+        }
+        .caption {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #555;
+        }
         footer {
             background-color: #002147;
             color: #FFFFFF;
@@ -157,10 +155,13 @@
     </nav>
 
     <div class="artwork-container">
-        <div class="fullscale">
+        <div class="zoom-pan-container">
             <img id="fullscale-img" src="" alt="Full Scale Artwork">
-            <div class="zoom-icon" id="zoom-in">+</div>
-            <div class="zoom-out-icon" id="zoom-out">-</div>
+        </div>
+        <div class="caption" id="art-caption"></div>
+        
+        <div class="details">
+            <img id="details-img" src="" alt="Details Image">
         </div>
         <div class="caption" id="art-caption"></div>
     </div>
@@ -196,101 +197,71 @@
         // Display the selected artwork
         document.addEventListener('DOMContentLoaded', () => {
             let params = getQueryParams();
-            if (params.img && params.caption) {
-                document.getElementById('fullscale-img').src = params.img;
-                document.getElementById('art-caption').textContent = params.caption;
+            // Ensure both fullscale and detail images, as well as the caption, are processed correctly
+            if (params.img && params.detailsImg && params.caption) {
+                document.getElementById('fullscale-img').src = params.img; // Set fullscale image source
+                document.getElementById('details-img').src = params.detailsImg; // Set details image source
+                document.getElementById('art-caption').textContent = params.caption; // Set caption
             }
 
-            const img = document.getElementById('fullscale-img');
-            const zoomInBtn = document.getElementById('zoom-in');
-            const zoomOutBtn = document.getElementById('zoom-out');
-            let isZoomed = false;
-            let startX, startY, moveX = 0, moveY = 0;
-            let isDragging = false;
+            let img = document.getElementById('fullscale-img');
+            let isPanning = false, startX = 0, startY = 0, currentX = 0, currentY = 0, scale = 1;
 
-            const imgContainer = document.querySelector('.fullscale');
-
-            // Prevent default scrolling while zooming
-            function preventScroll(event) {
-                event.preventDefault();
+            function setTransform() {
+                img.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
             }
 
-            // Ensure boundaries when dragging the zoomed image
-            function applyBoundaries() {
-                const containerRect = imgContainer.getBoundingClientRect();
-                const imgRect = img.getBoundingClientRect();
-                const maxTranslateX = (imgRect.width - containerRect.width) / 4;
-                const maxTranslateY = (imgRect.height - containerRect.height) / 4;
-
-                moveX = Math.min(Math.max(moveX, -maxTranslateX), maxTranslateX);
-                moveY = Math.min(Math.max(moveY, -maxTranslateY), maxTranslateY);
-
-                img.style.transform = `scale(2) translate(${moveX}px, ${moveY}px)`;
-            }
-
-            // Zoom in functionality
-            zoomInBtn.addEventListener('click', () => {
-                if (!isZoomed) {
-                    img.style.transform = 'scale(2)';
-                    zoomOutBtn.style.display = 'block';
-                    isZoomed = true;
-                    document.body.addEventListener('touchmove', preventScroll, { passive: false });
-                    document.body.addEventListener('wheel', preventScroll, { passive: false });
-                }
-            });
-
-            // Zoom out functionality
-            zoomOutBtn.addEventListener('click', () => {
-                img.style.transform = 'scale(1)';
-                zoomOutBtn.style.display = 'none';
-                isZoomed = false;
-                img.style.left = 0;
-                img.style.top = 0;
-                document.body.removeEventListener('touchmove', preventScroll);
-                document.body.removeEventListener('wheel', preventScroll);
-            });
-
-            // Drag and move functionality
             img.addEventListener('mousedown', (e) => {
-                if (isZoomed) {
-                    startX = e.pageX - moveX;
-                    startY = e.pageY - moveY;
-                    isDragging = true;
-                    img.style.cursor = 'grabbing';
-                }
+                isPanning = true;
+                startX = e.clientX - currentX;
+                startY = e.clientY - currentY;
+                img.style.cursor = 'grabbing';
             });
 
             img.addEventListener('mousemove', (e) => {
-                if (isDragging && isZoomed) {
-                    moveX = e.pageX - startX;
-                    moveY = e.pageY - startY;
-                    applyBoundaries();
-                }
+                if (!isPanning) return;
+                currentX = e.clientX - startX;
+                currentY = e.clientY - startY;
+                setTransform();
             });
 
             img.addEventListener('mouseup', () => {
-                isDragging = false;
+                isPanning = false;
                 img.style.cursor = 'grab';
             });
 
+            img.addEventListener('mouseleave', () => {
+                isPanning = false;
+                img.style.cursor = 'grab';
+            });
+
+            img.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                let scaleAmount = e.deltaY * -0.001;
+                scale = Math.min(Math.max(1, scale + scaleAmount), 3); // Restrict scale between 1 and 3
+                setTransform();
+            });
+
+            // Touch support for mobile devices
+            let touchStartDist = 0;
             img.addEventListener('touchstart', (e) => {
-                if (isZoomed) {
-                    startX = e.touches[0].pageX - moveX;
-                    startY = e.touches[0].pageY - moveY;
-                    isDragging = true;
+                if (e.touches.length === 2) {
+                    const dx = e.touches[0].pageX - e.touches[1].pageX;
+                    const dy = e.touches[0].pageY - e.touches[1].pageY;
+                    touchStartDist = Math.sqrt(dx * dx + dy * dy);
                 }
             });
 
             img.addEventListener('touchmove', (e) => {
-                if (isDragging && isZoomed) {
-                    moveX = e.touches[0].pageX - startX;
-                    moveY = e.touches[0].pageY - startY;
-                    applyBoundaries();
+                if (e.touches.length === 2) {
+                    const dx = e.touches[0].pageX - e.touches[1].pageX;
+                    const dy = e.touches[0].pageY - e.touches[1].pageY;
+                    const touchEndDist = Math.sqrt(dx * dx + dy * dy);
+                    scale += (touchEndDist - touchStartDist) * 0.005;
+                    scale = Math.min(Math.max(1, scale), 3); // Restrict scale
+                    touchStartDist = touchEndDist;
+                    setTransform();
                 }
-            });
-
-            img.addEventListener('touchend', () => {
-                isDragging = false;
             });
         });
     </script>
