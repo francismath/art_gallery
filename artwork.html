@@ -208,9 +208,24 @@
             let startX, startY, moveX = 0, moveY = 0;
             let isDragging = false;
 
+            const imgContainer = document.querySelector('.fullscale');
+
             // Prevent default scrolling while zooming
             function preventScroll(event) {
                 event.preventDefault();
+            }
+
+            // Ensure boundaries when dragging the zoomed image
+            function applyBoundaries() {
+                const containerRect = imgContainer.getBoundingClientRect();
+                const imgRect = img.getBoundingClientRect();
+                const maxTranslateX = Math.max(0, (imgRect.width - containerRect.width) / 2);
+                const maxTranslateY = Math.max(0, (imgRect.height - containerRect.height) / 2);
+
+                moveX = Math.min(Math.max(moveX, -maxTranslateX), maxTranslateX);
+                moveY = Math.min(Math.max(moveY, -maxTranslateY), maxTranslateY);
+
+                img.style.transform = `scale(2) translate(${moveX}px, ${moveY}px)`;
             }
 
             // Zoom in functionality
@@ -249,7 +264,7 @@
                 if (isDragging && isZoomed) {
                     moveX = e.pageX - startX;
                     moveY = e.pageY - startY;
-                    img.style.transform = `scale(2) translate(${moveX}px, ${moveY}px)`;
+                    applyBoundaries();
                 }
             });
 
@@ -270,7 +285,7 @@
                 if (isDragging && isZoomed) {
                     moveX = e.touches[0].pageX - startX;
                     moveY = e.touches[0].pageY - startY;
-                    img.style.transform = `scale(2) translate(${moveX}px, ${moveY}px)`;
+                    applyBoundaries();
                 }
             });
 
