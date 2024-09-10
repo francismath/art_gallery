@@ -87,6 +87,7 @@
             height: 100vh; /* Full screen height */
         }
 
+        /* For zoomable image */
         .fullscale {
             position: relative;
             max-width: 100%;
@@ -102,21 +103,21 @@
             transition: transform 0.25s ease;
         }
 
-        /* Close icon style */
+        /* Close icon */
         .close-icon {
             position: absolute;
             top: 10px;
             right: 10px;
             width: 30px;
             height: 30px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
             border-radius: 50%;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            color: white;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             z-index: 10;
         }
@@ -150,8 +151,8 @@
 
     <div class="artwork-container">
         <div class="fullscale">
+            <div class="close-icon" id="close-icon">X</div>
             <img id="fullscale-img" src="" alt="Full Scale Artwork">
-            <div class="close-icon" id="close-icon">×</div>
         </div>
         <div class="caption" id="art-caption"></div>
     </div>
@@ -235,18 +236,6 @@
                 }
             });
 
-            // Close zoom on click of the close icon
-            closeIcon.addEventListener('click', () => {
-                if (isZoomed) {
-                    img.style.transform = 'scale(1)';
-                    isZoomed = false;
-                    moveX = 0;
-                    moveY = 0;
-                    document.body.removeEventListener('touchmove', preventScroll);
-                    document.body.removeEventListener('wheel', preventScroll);
-                }
-            });
-
             // Drag and move functionality for zoomed image
             img.addEventListener('mousedown', (e) => {
                 if (isZoomed) {
@@ -288,6 +277,16 @@
 
             img.addEventListener('touchend', () => {
                 isDragging = false;
+            });
+
+            // Close icon functionality
+            closeIcon.addEventListener('click', () => {
+                img.style.transform = 'scale(1)';
+                isZoomed = false;
+                moveX = 0;
+                moveY = 0;
+                document.body.removeEventListener('touchmove', preventScroll);
+                document.body.removeEventListener('wheel', preventScroll);
             });
         });
     </script>
