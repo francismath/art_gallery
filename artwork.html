@@ -219,8 +219,8 @@
             function applyBoundaries() {
                 const containerRect = imgContainer.getBoundingClientRect();
                 const imgRect = img.getBoundingClientRect();
-                const maxTranslateX = (imgRect.width - containerRect.width) / 2;
-                const maxTranslateY = (imgRect.height - containerRect.height) / 2;
+                const maxTranslateX = (imgRect.width - containerRect.width) / 4;
+                const maxTranslateY = (imgRect.height - containerRect.height) / 4;
 
                 moveX = Math.min(Math.max(moveX, -maxTranslateX), maxTranslateX);
                 moveY = Math.min(Math.max(moveY, -maxTranslateY), maxTranslateY);
