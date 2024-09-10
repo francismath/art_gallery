@@ -12,6 +12,7 @@
             background-color: #FFFFFF;
             color: #333;
             box-sizing: border-box;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         nav {
@@ -102,12 +103,13 @@
             transition: transform 0.25s ease;
         }
 
+        /* Zoom icon at the bottom left */
         .zoom-icon {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
+            bottom: 10px;
+            left: 10px;
+            background-color: white;
+            color: black;
             padding: 10px;
             border-radius: 50%;
             cursor: pointer;
@@ -117,10 +119,10 @@
         .zoom-out-icon {
             display: none;
             position: absolute;
-            top: 50px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
+            bottom: 50px;
+            left: 10px;
+            background-color: white;
+            color: black;
             padding: 10px;
             border-radius: 50%;
             cursor: pointer;
@@ -206,12 +208,19 @@
             let startX, startY, moveX = 0, moveY = 0;
             let isDragging = false;
 
+            // Prevent default scrolling while zooming
+            function preventScroll(event) {
+                event.preventDefault();
+            }
+
             // Zoom in functionality
             zoomInBtn.addEventListener('click', () => {
                 if (!isZoomed) {
                     img.style.transform = 'scale(2)';
                     zoomOutBtn.style.display = 'block';
                     isZoomed = true;
+                    document.body.addEventListener('touchmove', preventScroll, { passive: false });
+                    document.body.addEventListener('wheel', preventScroll, { passive: false });
                 }
             });
 
@@ -222,6 +231,8 @@
                 isZoomed = false;
                 img.style.left = 0;
                 img.style.top = 0;
+                document.body.removeEventListener('touchmove', preventScroll);
+                document.body.removeEventListener('wheel', preventScroll);
             });
 
             // Drag and move functionality
