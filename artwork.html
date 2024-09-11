@@ -267,8 +267,8 @@
 
             img.addEventListener('mousemove', (e) => {
                 if (isDragging && isZoomed) {
-                    moveX = (e.pageX - startX) * 0.4;  // Reducing movement speed
-                    moveY = (e.pageY - startY) * 0.4;  // Reducing movement speed
+                    moveX = (e.pageX - startX) * 0.2;  // Reducing movement speed
+                    moveY = (e.pageY - startY) * 0.2;  // Reducing movement speed
                     applyBoundaries();
                 }
             });
@@ -295,8 +295,8 @@
             img.addEventListener('touchmove', (e) => {
                 if (isDragging && isZoomed) {
                     const touch = e.touches[0];
-                    moveX = (touch.pageX - startX) * 0.4;  // Reducing movement speed
-                    moveY = (touch.pageY - startY) * 0.4;  // Reducing movement speed
+                    moveX = (touch.pageX - startX) * 0.2;  // Reducing movement speed
+                    moveY = (touch.pageY - startY) * 0.2;  // Reducing movement speed
                     applyBoundaries();
                 }
             });
