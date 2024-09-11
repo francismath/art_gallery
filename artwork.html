@@ -219,8 +219,8 @@
             function applyBoundaries() {
                 const containerRect = imgContainer.getBoundingClientRect();
                 const imgRect = img.getBoundingClientRect();
-                const maxTranslateX = (imgRect.width - containerRect.width);
-                const maxTranslateY = (imgRect.height - containerRect.height);
+                const maxTranslateX = (imgRect.width - containerRect.width)/3;
+                const maxTranslateY = (imgRect.height - containerRect.height)/3;
 
                 moveX = Math.min(Math.max(moveX, -maxTranslateX), 0);
                 moveY = Math.min(Math.max(moveY, -maxTranslateY), 0);
@@ -267,38 +267,44 @@
 
             img.addEventListener('mousemove', (e) => {
                 if (isDragging && isZoomed) {
-                    moveX = e.pageX - startX;
-                    moveY = e.pageY - startY;
+                    moveX = (e.pageX - startX) * 0.4;  // Reducing movement speed
+                    moveY = (e.pageY - startY) * 0.4;  // Reducing movement speed
                     applyBoundaries();
                 }
             });
 
             img.addEventListener('mouseup', () => {
-            isDragging = false;
-            img.style.cursor = 'grab';
-        });
+                isDragging = false;
+                img.style.cursor = 'grab';
+            });
 
-        // For touch devices
-        img.addEventListener('touchstart', (e) => {
-            if (isZoomed) {
-                startX = e.touches[0].pageX - moveX;
-                startY = e.touches[0].pageY - moveY;
-                isDragging = true;
-                img.style.cursor = 'grabbing';
-            }
-        });
+            img.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
 
-        img.addEventListener('touchmove', (e) => {
-            if (isDragging && isZoomed) {
-                moveX = e.touches[0].pageX - startX;
-                moveY = e.touches[0].pageY - startY;
-                applyBoundaries();
-            }
-        });
+            // Drag and move on touch
+            img.addEventListener('touchstart', (e) => {
+                if (isZoomed) {
+                    const touch = e.touches[0];
+                    startX = touch.pageX - moveX;
+                    startY = touch.pageY - moveY;
+                    isDragging = true;
+                }
+            });
 
-        img.addEventListener('touchend', () => {
-            isDragging = false;
-            img.style.cursor = 'grab';
+            img.addEventListener('touchmove', (e) => {
+                if (isDragging && isZoomed) {
+                    const touch = e.touches[0];
+                    moveX = (touch.pageX - startX) * 0.4;  // Reducing movement speed
+                    moveY = (touch.pageY - startY) * 0.4;  // Reducing movement speed
+                    applyBoundaries();
+                }
+            });
+
+            img.addEventListener('touchend', () => {
+                isDragging = false;
+            });
         });
-    });
-</script>
+    </script>
+</body>
+</html>
