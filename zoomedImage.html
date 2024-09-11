@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoomed Image</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .image-container {
+            position: relative;
+            width: 300%; /* 3x horizontal scaling */
+            height: 150%; /* 1.5x vertical scaling */
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            transform: scale(1.5); /* Increase image size */
+        }
+    </style>
+</head>
+<body>
+
+<div class="image-container" id="image-container">
+    <img id="zoomed-img" src="" alt="Zoomed Artwork">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const imgUrl = params.get('img');
+
+        const zoomedImg = document.getElementById('zoomed-img');
+        zoomedImg.src = imgUrl;
+
+        // Drag functionality
+        let startX, startY, moveX = 0, moveY = 0;
+        let isDragging = false;
+
+        const container = document.getElementById('image-container');
+
+        container.addEventListener('mousedown', (e) => {
+            startX = e.pageX - moveX;
+            startY = e.pageY - moveY;
+            isDragging = true;
+            container.style.cursor = 'grabbing';
+        });
+
+        container.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                moveX = e.pageX - startX;
+                moveY = e.pageY - startY;
+                applyBoundaries();
+            }
+        });
+
+        container.addEventListener('mouseup', () => {
+            isDragging = false;
+            container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // Drag and move on touch
+        container.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startX = touch.pageX - moveX;
+            startY = touch.pageY - moveY;
+            isDragging = true;
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                moveX = touch.pageX - startX;
+                moveY = touch.pageY - startY;
+                applyBoundaries();
+            }
+        });
+
+        container.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        function applyBoundaries() {
+            const containerRect = container.getBoundingClientRect();
+            const imgRect = zoomedImg.getBoundingClientRect();
+            const maxTranslateX = (imgRect.width - containerRect.width) / 1.5;
+            const maxTranslateY = (imgRect.height - containerRect.height) / 1.5;
+
+            moveX = Math.min(Math.max(moveX, -maxTranslateX), 0);
+            moveY = Math.min(Math.max(moveY, -maxTranslateY), 0);
+
+            zoomedImg.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+    });
+</script>
+
+</body>
+</html>
