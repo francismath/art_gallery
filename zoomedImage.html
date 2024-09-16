@@ -131,12 +131,14 @@
         function applyBoundaries() {
             const containerRect = container.getBoundingClientRect();
             const imgRect = zoomedImg.getBoundingClientRect();
-            const maxTranslateX = (imgRect.width - containerRect.width) / 1.5;
-            const maxTranslateY = (imgRect.height - containerRect.height) / 1.5;
-
-            moveX = Math.min(Math.max(moveX, -maxTranslateX), 0);
-            moveY = Math.min(Math.max(moveY, -maxTranslateY), 0);
-
+        
+            const maxTranslateX = imgRect.width - containerRect.width;
+            const maxTranslateY = imgRect.height - containerRect.height;
+        
+            // Adjust moveX and moveY to stay within bounds
+            moveX = Math.min(0, Math.max(moveX, -maxTranslateX));
+            moveY = Math.min(0, Math.max(moveY, -maxTranslateY));
+        
             zoomedImg.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.5)`; // Keep the scaling
         }
     });
