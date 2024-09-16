@@ -70,6 +70,75 @@
         const zoomedImg = document.getElementById('zoomed-img');
         zoomedImg.src = imgUrl;
 
-        // Close button to return to artwork.html with image parameter
+        // Close button to return to artwork.html
         document.getElementById('close-btn').addEventListener('click', () => {
-            window.location.href = `artwork.html?img=${encodeURIComponent(imgUrl)}`;
+            window.location.href = 'artwork.html'; // Redirect to artwork.html
+        });
+
+        // Drag functionality
+        let startX, startY, moveX = 0, moveY = 0;
+        let isDragging = false;
+
+        const container = document.getElementById('image-container');
+
+        container.addEventListener('mousedown', (e) => {
+            startX = e.pageX - moveX;
+            startY = e.pageY - moveY;
+            isDragging = true;
+            container.style.cursor = 'grabbing';
+        });
+
+        container.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                moveX = e.pageX - startX;
+                moveY = e.pageY - startY;
+                applyBoundaries();
+            }
+        });
+
+        container.addEventListener('mouseup', () => {
+            isDragging = false;
+            container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // Drag and move on touch
+        container.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startX = touch.pageX - moveX;
+            startY = touch.pageY - moveY;
+            isDragging = true;
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                moveX = touch.pageX - startX;
+                moveY = touch.pageY - startY;
+                applyBoundaries();
+            }
+        });
+
+        container.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        function applyBoundaries() {
+            const containerRect = container.getBoundingClientRect();
+            const imgRect = zoomedImg.getBoundingClientRect();
+            const maxTranslateX = (imgRect.width - containerRect.width) / 1.5;
+            const maxTranslateY = (imgRect.height - containerRect.height) / 1.5;
+
+            moveX = Math.min(Math.max(moveX, -maxTranslateX), 0);
+            moveY = Math.min(Math.max(moveY, -maxTranslateY), 0);
+
+            zoomedImg.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.5)`; // Keep the scaling
+        }
+    });
+</script>
+
+</body>
+</html>
