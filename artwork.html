@@ -204,8 +204,9 @@
 
         function redirectToZoomPage() {
             const imgUrl = document.getElementById('fullscale-img').src;
+            const detailsImgUrl = document.getElementById('details-img').src;
             const caption = document.getElementById('art-caption').textContent;
-            window.location.href = `zoomedImage.html?img=${encodeURIComponent(imgUrl)}&caption=${encodeURIComponent(caption)}`;
+            window.location.href = `zoomedImage.html?img=${encodeURIComponent(imgUrl)}&detailsImg=${encodeURIComponent(detailsImgUrl)}&caption=${encodeURIComponent(caption)}`;
         }
     </script>
 </body>
