@@ -89,45 +89,42 @@
             position: relative;
         }
 
+        /* For zoomable image */
         .fullscale {
             position: relative;
-            width: 100%;
-            max-width: 600px;
+            max-width: 100%;
+            overflow: hidden;
+            cursor: grab;
         }
 
         .fullscale img {
-            width: 100%;
-            height: auto;
-            cursor: pointer;
+            max-width: 100%;
+            transition: transform 0.25s ease;
         }
 
-        /* Zoom icon on top-left */
         .zoom-icon {
             position: absolute;
             top: 10px;
-            left: 10px;
-            background-color: white;
-            color: black;
-            border: 2px solid #002147;
-            border-radius: 50%;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
             padding: 10px;
-            font-size: 1.5em;
+            border-radius: 50%;
             cursor: pointer;
             z-index: 1000;
         }
 
-        .details img {
-            width: 100%;
-            max-width: 600px;
-            height: auto;
-            margin-top: 20px;
+        .zoom-out-icon {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
             cursor: pointer;
-        }
-
-        .caption {
-            margin-top: 10px;
-            font-size: 1em;
-            color: #555;
+            z-index: 1000;
         }
 
         footer {
@@ -160,11 +157,8 @@
     <div class="artwork-container">
         <div class="fullscale">
             <img id="fullscale-img" src="" alt="Full Scale Artwork">
-            <!-- Zoom icon -->
-            <div class="zoom-icon" id="zoom-icon">+</div>
-        </div>
-        <div class="details">
-            <img id="details-img" src="" alt="Details Image">
+            <div class="zoom-icon" id="zoom-in">+</div>
+            <div class="zoom-out-icon" id="zoom-out">-</div>
         </div>
         <div class="caption" id="art-caption"></div>
     </div>
@@ -197,30 +191,81 @@
             return params;
         }
 
-        // Redirect to zoomed image page
-        function redirectToZoomedImage() {
-            let params = getQueryParams();
-            let imgSrc = params.img ? params.img : ''; // Get image source
-            let caption = params.caption ? params.caption : ''; // Get caption
-
-            window.location.href = `zoomedImage.html?img=${encodeURIComponent(imgSrc)}&caption=${encodeURIComponent(caption)}`;
-        }
-
-        // Display the selected artwork and set up the zoom functionality
+        // Display the selected artwork
         document.addEventListener('DOMContentLoaded', () => {
             let params = getQueryParams();
-            if (params.img && params.detailsImg && params.caption) {
+            if (params.img && params.caption) {
                 document.getElementById('fullscale-img').src = params.img;
-                document.getElementById('details-img').src = params.detailsImg;
                 document.getElementById('art-caption').textContent = params.caption;
             }
 
-            // Add event listeners for the image and zoom icon to redirect to zoomed image
             const img = document.getElementById('fullscale-img');
-            const zoomIcon = document.getElementById('zoom-icon');
+            const zoomInBtn = document.getElementById('zoom-in');
+            const zoomOutBtn = document.getElementById('zoom-out');
+            let isZoomed = false;
+            let startX, startY, moveX = 0, moveY = 0;
+            let isDragging = false;
 
-            img.addEventListener('click', redirectToZoomedImage);
-            zoomIcon.addEventListener('click', redirectToZoomedImage);
+            // Zoom in functionality
+            zoomInBtn.addEventListener('click', () => {
+                if (!isZoomed) {
+                    img.style.transform = 'scale(2)';
+                    zoomOutBtn.style.display = 'block';
+                    isZoomed = true;
+                }
+            });
+
+            // Zoom out functionality
+            zoomOutBtn.addEventListener('click', () => {
+                img.style.transform = 'scale(1)';
+                zoomOutBtn.style.display = 'none';
+                isZoomed = false;
+                img.style.left = 0;
+                img.style.top = 0;
+            });
+
+            // Drag and move functionality
+            img.addEventListener('mousedown', (e) => {
+                if (isZoomed) {
+                    startX = e.pageX - moveX;
+                    startY = e.pageY - moveY;
+                    isDragging = true;
+                    img.style.cursor = 'grabbing';
+                }
+            });
+
+            img.addEventListener('mousemove', (e) => {
+                if (isDragging && isZoomed) {
+                    moveX = e.pageX - startX;
+                    moveY = e.pageY - startY;
+                    img.style.transform = `scale(2) translate(${moveX}px, ${moveY}px)`;
+                }
+            });
+
+            img.addEventListener('mouseup', () => {
+                isDragging = false;
+                img.style.cursor = 'grab';
+            });
+
+            img.addEventListener('touchstart', (e) => {
+                if (isZoomed) {
+                    startX = e.touches[0].pageX - moveX;
+                    startY = e.touches[0].pageY - moveY;
+                    isDragging = true;
+                }
+            });
+
+            img.addEventListener('touchmove', (e) => {
+                if (isDragging && isZoomed) {
+                    moveX = e.touches[0].pageX - startX;
+                    moveY = e.touches[0].pageY - startY;
+                    img.style.transform = `scale(2) translate(${moveX}px, ${moveY}px)`;
+                }
+            });
+
+            img.addEventListener('touchend', () => {
+                isDragging = false;
+            });
         });
     </script>
 </body>
