@@ -30,7 +30,6 @@
             transition: transform 0.3s ease;
         }
 
-        /* Close button styling */
         .close-btn {
             position: absolute;
             top: 20px;
@@ -66,16 +65,19 @@
     document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams(window.location.search);
         const imgUrl = params.get('img');
+        const detailsImg = params.get('detailsImg');
+        const caption = params.get('caption');
 
         const zoomedImg = document.getElementById('zoomed-img');
         zoomedImg.src = imgUrl;
 
         // Close button to return to artwork.html
         document.getElementById('close-btn').addEventListener('click', () => {
-            window.location.href = 'artwork.html'; // Redirect to artwork.html
+            // Pass back the img, detailsImg, and caption information
+            window.location.href = `artwork.html?img=${encodeURIComponent(imgUrl)}&detailsImg=${encodeURIComponent(detailsImg)}&caption=${encodeURIComponent(caption)}`;
         });
 
-        // Drag functionality
+        // Drag functionality (same as before)
         let startX, startY, moveX = 0, moveY = 0;
         let isDragging = false;
 
