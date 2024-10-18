@@ -84,7 +84,6 @@
             height: auto;
             border: none;
             margin-bottom: 20px;
-            cursor: pointer;
         }
         .details img {
             width: 100%;
@@ -92,7 +91,6 @@
             height: auto;
             border: none;
             margin-bottom: 20px;
-            cursor: pointer;
         }
         .caption {
             margin-top: 10px;
@@ -104,25 +102,6 @@
             color: #FFFFFF;
             text-align: center;
             padding: 1em 0;
-        }
-        .zoom-icon {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 40px;
-            height: 40px;
-            background-color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            border: 2px solid #002147;
-        }
-        .zoom-icon::before {
-            content: "+";
-            font-size: 24px;
-            color: #002147;
         }
     </style>
 </head>
@@ -146,7 +125,6 @@
     </nav>
 
     <div class="artwork-container">
-        <div class="zoom-icon" id="zoom-icon"></div>
         <div class="fullscale">
             <img id="fullscale-img" src="" alt="Full Scale Artwork">
         </div>
@@ -193,21 +171,7 @@
                 document.getElementById('details-img').src = params.detailsImg; // Set details image source
                 document.getElementById('art-caption').textContent = params.caption; // Set caption
             }
-
-            const zoomIcon = document.getElementById('zoom-icon');
-            const fullscaleImg = document.getElementById('fullscale-img');
-
-            // Event listener for zoom icon click or image click
-            zoomIcon.addEventListener('click', redirectToZoomPage);
-            fullscaleImg.addEventListener('click', redirectToZoomPage);
         });
-
-        function redirectToZoomPage() {
-            const imgUrl = document.getElementById('fullscale-img').src;
-            const detailsImgUrl = document.getElementById('details-img').src;
-            const caption = document.getElementById('art-caption').textContent;
-            window.location.href = `zoomedImage.html?img=${encodeURIComponent(imgUrl)}&detailsImg=${encodeURIComponent(detailsImgUrl)}&caption=${encodeURIComponent(caption)}`;
-        }
     </script>
 </body>
 </html>
